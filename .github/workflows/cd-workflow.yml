@@ -45,7 +45,7 @@ jobs:
         env:
           CI: true
           
-  build-and-push-docker-image:
+  Build-And-Push-Docker-Image:
     runs-on: ubuntu-latest
     needs: test
     name: Docker Build, Tag, Push
