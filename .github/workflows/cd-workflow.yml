@@ -61,8 +61,8 @@ jobs:
     - name: Build container image
       uses: docker/build-push-action@v2
       with:
-        username: ${{ItsAnass}}
-        password: ${{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}}
+        username: ${{"ItsAnass"}}
+        password: ${{"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"}}
         registry: docker.pkg.github.com
         repository: ItsAnass/github-actions-for-packages/tic-tac-toe
         tag_with_sha: true
