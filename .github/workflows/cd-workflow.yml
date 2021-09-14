@@ -64,4 +64,4 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: ItsAnass/tic-tac-toe:latest
+        tags: itsanass/tic-tac-toe:latest
