@@ -1,67 +1,45 @@
 # This file wont do us much good in this location, make sure you change the path as directed to continue!
 
-name: Docker CD
-
 on: [push]
+
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v1
-      - name: npm install and build webpack
-        run: |
-          npm install
-          npm run build
-      - uses: actions/upload-artifact@master
-        with:
-          name: webpack artifacts
-          path: public/
-  test:
-    runs-on: ubuntu-latest
-    needs: build
-    strategy:
-      matrix:
-        os: [ubuntu-lastest, windows-2016]
-        node-version: [12.x, 14.x]
+      - name: Checkout repo
+        uses: actions/checkout@v2
 
-    steps:
-      - uses: actions/checkout@v1
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
+      - name: Docker meta
+        id: docker_meta
+        uses: crazy-max/ghaction-docker-meta@v1
         with:
-          node-version: ${{ matrix.node-version }}
-      - uses: actions/download-artifact@master
-        with:
-          name: webpack artifacts
-          path: public
-      - name: npm install, and test
-        run: |
-          npm install
-          npm test
-        env:
-          CI: true
-  Build-and-Push-Docker-Image:
-    runs-on: ubuntu-latest
-    needs: test
-    name: Docker Build, Tag, Push
+          images: ghcr.io/spuute/test
+          tag-sha: true
+          tag-edge: false
+          tag-latest: true
 
-    steps:
-    - name: Checkout
-      uses: actions/checkout@v1
-    - name: Download built artifact
-      uses: actions/download-artifact@main
-      with:
-        name: webpack artifacts
-        path: public
-    - name: Login to GitHub Container Registry
-      uses: docker/login-action@v1.10.0
-      with:
-         registry: ghcr.io
-         username: ${{github.actor}}
-         password: ${{secrets.GITHUB_TOKEN}}
-    - name: Build container image
-      uses: docker/build-push-action@v2
-      with:
-        push: true
-        tags: itsanass/tic-tac-toe:latest
+      - name: Setup QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to GHCR
+        uses: docker/login-action@v1
+        with: 
+          registry: ghcr.io
+          username: ${{github.actor}}
+          password: ${{secrets.GITHUB_TOKEN}}
+
+      - name: Build image
+        uses: docker/build-push-action@v2
+        with:
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          file: ./Dockerfile
+        
+      - name: Push image
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: ${{ steps.docker_meta.outputs.tags }}
+          file: ./Dockerfile
